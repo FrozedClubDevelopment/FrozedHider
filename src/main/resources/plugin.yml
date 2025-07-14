@@ -1,0 +1,7 @@
+name: FrozedHider
+version: ${project.version}
+main: club.frozed.hider.FrozedHider
+api-version: 1.21
+authors: [ Elb1to ]
+description: WorldGuard flag plugin for hiding players in regions
+website: www.frozed.club
