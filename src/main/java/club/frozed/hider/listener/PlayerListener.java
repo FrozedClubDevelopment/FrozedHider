@@ -7,12 +7,15 @@ import com.sk89q.worldguard.protection.flags.StateFlag;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
 import net.minecraft.server.level.ServerPlayer;
-import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.v1_21_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Elb1to
@@ -22,37 +25,35 @@ public class PlayerListener implements Listener {
 
 	private final FrozedHider plugin;
 
+	// We keep track of online players here to avoid
+	// creating Collections unnecessarily on every event call.
+	private final Set<Player> onlinePlayers = new HashSet<>();
+
 	public PlayerListener(FrozedHider plugin) {
 		this.plugin = plugin;
+		onlinePlayers.addAll(plugin.getServer().getOnlinePlayers());
 	}
 
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent event) {
 		Player player = event.getPlayer();
+		onlinePlayers.add(player);
 		if (!player.isOnline()) {
 			return;
 		}
 
 		StateFlag flag = plugin.getHidePlayerFlag();
 		for (ProtectedRegion region : plugin.getWorldGuardHook().getRegions(player.getUniqueId())) {
-			if (region.getFlags().containsKey(flag) && region.getFlag(flag) == StateFlag.State.ALLOW) {
-				for (Player online : Bukkit.getServer().getOnlinePlayers()) {
-					if (online.hasPermission("frozedhider.view-all")) {
-						continue;
-					}
-					if (online.hasPermission("frozedhider.view-staff") && player.hasPermission("frozedhider.view-staff")) {
-						continue;
-					}
-
-					online.hidePlayer(plugin, player);
-					keepOnTablist(player);
-
-					if (plugin.isDebug()) {
-						Bukkit.getServer().broadcastMessage("Player '" + player.getName() + "' has joined the server and is hidden due to region: " + region.getId());
-					}
-				}
+			if (region.getFlag(flag) == StateFlag.State.ALLOW) {
+				hidePlayer(player, region.getId());
+				break;
 			}
 		}
+	}
+
+	@EventHandler
+	public void onPlayerQuit(PlayerQuitEvent event) {
+		onlinePlayers.remove(event.getPlayer());
 	}
 
 	@EventHandler
@@ -63,25 +64,8 @@ public class PlayerListener implements Listener {
 		}
 
 		ProtectedRegion region = event.getRegion();
-		StateFlag flag = plugin.getHidePlayerFlag();
-		if (region.getFlag(flag) != StateFlag.State.ALLOW) {
-			return;
-		}
-
-		for (Player onlinePlayer : Bukkit.getServer().getOnlinePlayers()) {
-			if (onlinePlayer.hasPermission("frozedhider.view-all")) {
-				continue;
-			}
-			if (onlinePlayer.hasPermission("frozedhider.view-staff") && player.hasPermission("frozedhider.view-staff")) {
-				continue;
-			}
-
-			onlinePlayer.hidePlayer(plugin, player);
-			keepOnTablist(player);
-
-			if (plugin.isDebug()) {
-				Bukkit.getServer().broadcastMessage("Player '" + player.getName() + "' is now hidden due to entering the region: " + region.getId());
-			}
+		if (region.getFlag(plugin.getHidePlayerFlag()) == StateFlag.State.ALLOW) {
+			hidePlayer(player, region.getId());
 		}
 	}
 
@@ -92,19 +76,51 @@ public class PlayerListener implements Listener {
 			return;
 		}
 
-		ProtectedRegion region = event.getRegion();
 		StateFlag flag = plugin.getHidePlayerFlag();
-		if (region.getFlag(flag) != StateFlag.State.ALLOW && player.hasPermission("frozedhider.stay-hidden")) {
+		boolean inHideRegion = plugin.getWorldGuardHook().getRegions(player.getUniqueId()).stream().anyMatch(r -> r.getFlag(flag) == StateFlag.State.ALLOW);
+		if (!inHideRegion) {
+			showPlayer(player, event.getRegion().getId());
+		}
+	}
+
+	private void hidePlayer(Player player, String regionId) {
+		for (Player onlinePlayer : onlinePlayers) {
+			if (onlinePlayer == player || !onlinePlayer.isOnline()) continue;
+			if (canSee(onlinePlayer, player)) {
+				if (plugin.isDebug()) {
+					plugin.getServer().broadcastMessage("Player '" + onlinePlayer.getName() + "' can see '" + player.getName() + "' due to permissions.");
+				}
+
+				continue;
+			}
+			onlinePlayer.hidePlayer(plugin, player);
+		}
+
+		keepOnTablist(player);
+
+		if (plugin.isDebug()) {
+			plugin.getServer().broadcastMessage("Player '" + player.getName() + "' is now hidden due to region: " + regionId);
+		}
+	}
+
+	private void showPlayer(Player player, String regionId) {
+		if (player.hasPermission("frozedhider.stay-hidden")) {
+			if (plugin.isDebug()) {
+				plugin.getServer().broadcastMessage("Player '" + player.getName() + "' is not shown due to permission 'frozedhider.stay-hidden'");
+			}
+
 			return;
 		}
 
-		for (Player online : Bukkit.getServer().getOnlinePlayers()) {
-			online.showPlayer(plugin, player);
+		for (Player onlinePlayer : onlinePlayers) onlinePlayer.showPlayer(plugin, player);
 
-			if (plugin.isDebug()) {
-				Bukkit.getServer().broadcastMessage("Player '" + player.getName() + "' is no longer hidden due to leaving the region: " + region.getId());
-			}
+		if (plugin.isDebug()) {
+			plugin.getServer().broadcastMessage("Player '" + player.getName() + "' is no longer hidden due to leaving region: " + regionId);
 		}
+	}
+
+	private boolean canSee(Player viewer, Player target) {
+		return viewer.hasPermission("frozedhider.view-all") || (viewer.hasPermission("frozedhider.view-staff") && target.hasPermission("frozedhider.view-staff"));
 	}
 
 	private void keepOnTablist(Player player) {
@@ -127,8 +143,8 @@ public class PlayerListener implements Listener {
 			entityPlayer.server.getPlayerList().broadcastAll(updateTablist);
 		}
 
-		if (FrozedHider.getInstance().isDebug()) {
-			Bukkit.getServer().broadcastMessage("Packet sent to keep player on tablist from: " + player.getName());
+		if (plugin.isDebug()) {
+			plugin.getServer().broadcastMessage("Packet sent to keep player on tablist from: " + player.getName());
 		}
 	}
 }

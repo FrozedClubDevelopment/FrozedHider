@@ -16,7 +16,6 @@ import com.sk89q.worldguard.session.handler.Handler;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Listener;
 
 import java.util.Collections;
 import java.util.Set;
@@ -37,9 +36,8 @@ public class WorldGuardHook {
 	}
 
 	public void init() {
-		if (!WorldGuard.getInstance().getPlatform().getSessionManager().registerHandler(Entry.factory, null)) {
-			plugin.getLogger().severe("[WorldGuardEvents] Could not register the entry handler !");
-			plugin.getLogger().severe("[WorldGuardEvents] Please report this error. The plugin will now be disabled.");
+		if (!WorldGuard.getInstance().getPlatform().getSessionManager().registerHandler(new FactoryHandler(plugin), null)) {
+			plugin.getLogger().severe("[FrozedHider] Could not register the factory entry handler! Disabling plugin...");
 			plugin.getServer().getPluginManager().disablePlugin(plugin);
 			return;
 		}
@@ -56,40 +54,51 @@ public class WorldGuardHook {
 		return container.createQuery().getApplicableRegions(BukkitAdapter.adapt(player.getLocation())).getRegions();
 	}
 
-	public static class Entry extends Handler implements Listener {
+	public static class FactoryHandler extends Handler.Factory<EntryHandler> {
 
-		public static Factory factory = new Factory();
+		private final FrozedHider plugin;
 
-		public static class Factory extends Handler.Factory<Entry> {
-			@Override
-			public Entry create(Session session) {
-				return new Entry(session);
-			}
+		public FactoryHandler(FrozedHider plugin) {
+			this.plugin = plugin;
 		}
 
-		public Entry(Session session) {
+		@Override
+		public EntryHandler create(Session session) {
+			return new EntryHandler(session, plugin);
+		}
+	}
+
+	public static class EntryHandler extends Handler {
+
+		private final FrozedHider plugin;
+
+		public EntryHandler(Session session, FrozedHider plugin) {
 			super(session);
+			this.plugin = plugin;
 		}
 
 		@Override
 		public boolean onCrossBoundary(LocalPlayer player, Location from, Location to, ApplicableRegionSet toSet, Set<ProtectedRegion> entered, Set<ProtectedRegion> exited, MoveType moveType) {
 			for (ProtectedRegion region : entered) {
 				PlayerRegionEntryEvent event = new PlayerRegionEntryEvent(player.getUniqueId(), region);
-				Bukkit.getServer().getPluginManager().callEvent(event);
+				plugin.getServer().getPluginManager().callEvent(event);
 				if (event.isCancelled()) {
-					if (FrozedHider.getInstance().isDebug()) {
-						Bukkit.getServer().broadcastMessage("Player " + player.getName() + " was prevented from entering region: " + region.getId());
+					if (plugin.isDebug()) {
+						plugin.getServer().broadcastMessage("Player " + player.getName() + " was prevented from entering region: " + region.getId());
 					}
+
 					return false;
 				}
 			}
+
 			for (ProtectedRegion region : exited) {
 				PlayerRegionExitEvent event = new PlayerRegionExitEvent(player.getUniqueId(), region);
-				Bukkit.getServer().getPluginManager().callEvent(event);
+				plugin.getServer().getPluginManager().callEvent(event);
 				if (event.isCancelled()) {
-					if (FrozedHider.getInstance().isDebug()) {
-						Bukkit.getServer().broadcastMessage("Player " + player.getName() + " was prevented from exiting region: " + region.getId());
+					if (plugin.isDebug()) {
+						plugin.getServer().broadcastMessage("Player " + player.getName() + " was prevented from exiting region: " + region.getId());
 					}
+
 					return false;
 				}
 			}

@@ -17,9 +17,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 @Getter
 public final class FrozedHider extends JavaPlugin {
 
-	@Getter
-	private static FrozedHider instance;
-
 	private boolean debug;
 	private WorldGuardHook worldGuardHook;
 	private StateFlag hidePlayerFlag = new StateFlag("hide-player", false);
@@ -39,12 +36,11 @@ public final class FrozedHider extends JavaPlugin {
 
 	@Override
 	public void onEnable() {
-		instance = this;
 		saveDefaultConfig();
 
 		if (getServer().getPluginManager().getPlugin("WorldGuard") != null) {
-			this.worldGuardHook = new WorldGuardHook(this);
-			this.worldGuardHook.init();
+			worldGuardHook = new WorldGuardHook(this);
+			worldGuardHook.init();
 		} else {
 			getLogger().severe("WorldGuard is not installed! Disabling FrozedHider...");
 			getServer().getPluginManager().disablePlugin(this);
@@ -52,10 +48,5 @@ public final class FrozedHider extends JavaPlugin {
 
 		debug = getConfig().getBoolean("debug", false);
 		getServer().getPluginManager().registerEvents(new PlayerListener(this), this);
-	}
-
-	@Override
-	public void onDisable() {
-		instance = null;
 	}
 }
