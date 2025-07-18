@@ -6,7 +6,7 @@
 
     <groupId>club.frozed</groupId>
     <artifactId>hider</artifactId>
-    <name>hider</name>
+    <name>frozedhider</name>
     <version>1.0.0</version>
     <packaging>jar</packaging>
 
@@ -69,14 +69,6 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- PaperLib -->
-        <dependency>
-            <groupId>io.papermc</groupId>
-            <artifactId>paperlib</artifactId>
-            <version>1.0.8</version>
-            <scope>compile</scope>
-        </dependency>
-
         <!-- Lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -114,12 +106,6 @@
                 <configuration>
                     <minimizeJar>true</minimizeJar>
                     <createDependencyReducedPom>false</createDependencyReducedPom>
-                    <relocations>
-                        <relocation>
-                            <pattern>io.papermc.lib</pattern>
-                            <shadedPattern>club.frozed.libs.paper</shadedPattern>
-                        </relocation>
-                    </relocations>
                     <filters>
                         <filter>
                             <artifact>*:*</artifact>
