@@ -37,11 +37,18 @@ public class PlayerListener implements Listener {
 		for (ProtectedRegion region : plugin.getWorldGuardHook().getRegions(player.getUniqueId())) {
 			if (region.getFlags().containsKey(flag) && region.getFlag(flag) == StateFlag.State.ALLOW) {
 				for (Player online : Bukkit.getServer().getOnlinePlayers()) {
+					if (online.hasPermission("frozedhider.view-all")) {
+						continue;
+					}
+					if (online.hasPermission("frozedhider.view-staff") && player.hasPermission("frozedhider.view-staff")) {
+						continue;
+					}
+
 					online.hidePlayer(plugin, player);
 					keepOnTablist(player);
 
 					if (plugin.isDebug()) {
-						Bukkit.getServer().broadcastMessage("Retarded ass '" + player.getName() + "' has joined the server and is hidden due to region: " + region.getId());
+						Bukkit.getServer().broadcastMessage("Player '" + player.getName() + "' has joined the server and is hidden due to region: " + region.getId());
 					}
 				}
 			}
@@ -62,11 +69,18 @@ public class PlayerListener implements Listener {
 		}
 
 		for (Player onlinePlayer : Bukkit.getServer().getOnlinePlayers()) {
+			if (onlinePlayer.hasPermission("frozedhider.view-all")) {
+				continue;
+			}
+			if (onlinePlayer.hasPermission("frozedhider.view-staff") && player.hasPermission("frozedhider.view-staff")) {
+				continue;
+			}
+
 			onlinePlayer.hidePlayer(plugin, player);
 			keepOnTablist(player);
 
 			if (plugin.isDebug()) {
-				Bukkit.getServer().broadcastMessage("Retarded ass '" + player.getName() + "' is now hidden due to entering the region: " + region.getId());
+				Bukkit.getServer().broadcastMessage("Player '" + player.getName() + "' is now hidden due to entering the region: " + region.getId());
 			}
 		}
 	}
@@ -80,7 +94,7 @@ public class PlayerListener implements Listener {
 
 		ProtectedRegion region = event.getRegion();
 		StateFlag flag = plugin.getHidePlayerFlag();
-		if (region.getFlag(flag) != StateFlag.State.ALLOW && player.hasPermission("frozedhider.inherit-vanish")) {
+		if (region.getFlag(flag) != StateFlag.State.ALLOW && player.hasPermission("frozedhider.stay-hidden")) {
 			return;
 		}
 
@@ -88,7 +102,7 @@ public class PlayerListener implements Listener {
 			online.showPlayer(plugin, player);
 
 			if (plugin.isDebug()) {
-				Bukkit.getServer().broadcastMessage("Retarded ass '" + player.getName() + "' is no longer hidden due to leaving the region: " + region.getId());
+				Bukkit.getServer().broadcastMessage("Player '" + player.getName() + "' is no longer hidden due to leaving the region: " + region.getId());
 			}
 		}
 	}
@@ -118,4 +132,3 @@ public class PlayerListener implements Listener {
 		}
 	}
 }
-

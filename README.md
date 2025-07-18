@@ -42,6 +42,18 @@ The configuration is located in `plugins/FrozedHider/config.yml`.
 debug: false
 ```
 
+## Usage & Permissions
+
+To hide players in a WorldGuard region, you need to set the `hide-player` flag on the region.
+
+If you want to see debug messages in the console, set `debug` to `true` in the configuration file.
+
+If you want a player to stay hidden after they leave the region, you can use the `frozedhider.stay-hidden` permission.
+
+If you want to see hidden players inside the region, you can use the `frozedhider.view-all` permission.
+
+If you want staff players to see other staff players inside the region, you can use the `frozedhider.view-staff` permission.
+
 ## Author
 
 This plugin is developed and maintained by [Elb1to](https://elb1to.me).

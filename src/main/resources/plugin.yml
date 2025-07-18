@@ -6,3 +6,13 @@ authors: [ Elb1to ]
 description: WorldGuard flag plugin for hiding players in regions
 website: www.frozed.club
 depend: [ WorldGuard ]
+permissions:
+  frozedhider.view-all:
+    description: "Allows you to see all hidden players inside the region."
+    default: op
+  frozedhider.view-staff:
+    description: "Allows you to see other staff members inside the region."
+    default: op
+  frozedhider.stay-hidden:
+    description: "Allows you to stay hidden after leaving a region."
+    default: op
