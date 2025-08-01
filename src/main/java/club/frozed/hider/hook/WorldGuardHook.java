@@ -8,6 +8,10 @@ import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldguard.LocalPlayer;
 import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
+import com.sk89q.worldguard.protection.flags.Flag;
+import com.sk89q.worldguard.protection.flags.StateFlag;
+import com.sk89q.worldguard.protection.flags.registry.FlagConflictException;
+import com.sk89q.worldguard.protection.flags.registry.FlagRegistry;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
 import com.sk89q.worldguard.session.MoveType;
@@ -30,9 +34,26 @@ public class WorldGuardHook {
 
 	private final FrozedHider plugin;
 	private RegionContainer container;
+	private StateFlag hidePlayerFlag;
 
 	public WorldGuardHook(FrozedHider plugin) {
 		this.plugin = plugin;
+	}
+
+	public void registerFlag() {
+		FlagRegistry registry = WorldGuard.getInstance().getFlagRegistry();
+		try {
+			StateFlag flag = new StateFlag("hide-player", false);
+			registry.register(flag);
+			hidePlayerFlag = flag;
+		} catch (FlagConflictException e) {
+			Flag<?> existing = registry.get("hide-player");
+			if (existing instanceof StateFlag) {
+				hidePlayerFlag = (StateFlag) existing;
+			} else {
+				plugin.getLogger().severe("Could not register the 'hide-player' flag due to a conflict!");
+			}
+		}
 	}
 
 	public void init() {

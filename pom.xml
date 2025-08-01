@@ -10,9 +10,11 @@
     <version>1.1.0</version>
     <packaging>jar</packaging>
 
+    <description>A simple plugin to hide players in certain WorldGuard regions.</description>
+
     <organization>
-        <name>Frozed Club Development</name>
-        <url>https://store.frozed.club</url>
+        <name>Frozed Club</name>
+        <url>https://frozed.club</url>
     </organization>
 
     <developers>
@@ -73,14 +75,21 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.30</version>
+            <version>1.18.34</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
 
     <build>
         <defaultGoal>clean package</defaultGoal>
-        <finalName>${project.name}-${project.version}</finalName>
+        <finalName>${project.name}-v${project.version}</finalName>
+        <sourceDirectory>src/main/java</sourceDirectory>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -160,11 +169,5 @@
                 </executions>
             </plugin>
         </plugins>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>true</filtering>
-            </resource>
-        </resources>
     </build>
 </project>
