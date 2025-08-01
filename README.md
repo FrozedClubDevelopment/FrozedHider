@@ -54,6 +54,8 @@ If you want to see hidden players inside the region, you can use the `frozedhide
 
 If you want staff players to see other staff players inside the region, you can use the `frozedhider.view-staff` permission.
 
+If you want a player to be considered as staff, you can use the `frozedhider.staff` permission.
+
 ## Author
 
 This plugin is developed and maintained by [Elb1to](https://elb1to.me).

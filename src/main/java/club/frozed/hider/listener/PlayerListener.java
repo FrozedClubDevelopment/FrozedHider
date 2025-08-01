@@ -58,6 +58,15 @@ public class PlayerListener implements Listener {
 			return;
 		}
 
+		// If the player has 'frozedhider.stay-hidden' permission,
+		// don't make them visible when they exit the region
+		if (player.hasPermission("frozedhider.stay-hidden")) {
+			if (plugin.isDebug()) {
+				plugin.getServer().broadcastMessage("Player '" + player.getName() + "' has stay-hidden permission, remaining hidden after leaving region '" + event.getRegion().getId() + "'.");
+			}
+			return;
+		}
+
 		StateFlag flag = plugin.getWorldGuardHook().getHidePlayerFlag();
 		boolean inHideRegion = plugin.getWorldGuardHook().getRegions(player.getUniqueId()).stream().anyMatch(r -> r.getFlag(flag) == StateFlag.State.ALLOW);
 		if (!inHideRegion) {
