@@ -2,9 +2,6 @@ package club.frozed.hider.manager;
 
 import club.frozed.hider.FrozedHider;
 import com.sk89q.worldguard.protection.flags.StateFlag;
-import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
-import net.minecraft.server.level.ServerPlayer;
-import org.bukkit.craftbukkit.v1_21_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
 /**
@@ -33,7 +30,7 @@ public class PlayerVisibilityManager {
 			onlinePlayer.hidePlayer(plugin, player);
 		}
 
-		keepOnTablist(player);
+		plugin.getNmsAdapter().keepOnTablist(player);
 
 		if (plugin.isDebug()) {
 			plugin.getServer().broadcastMessage("Hiding player '" + player.getName() + "' in region '" + regionId + "'.");
@@ -50,27 +47,6 @@ public class PlayerVisibilityManager {
 
 		if (plugin.isDebug()) {
 			plugin.getServer().broadcastMessage("Showing player '" + player.getName() + "' from region '" + regionId + "'.");
-		}
-	}
-
-	private void keepOnTablist(Player player) {
-		ServerPlayer serverPlayer = ((CraftPlayer) player).getHandle();
-		ClientboundPlayerInfoUpdatePacket addPlayer = new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER, serverPlayer);
-		ClientboundPlayerInfoUpdatePacket updateDisplayName = new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.Action.UPDATE_DISPLAY_NAME, serverPlayer);
-		ClientboundPlayerInfoUpdatePacket updateTablist = new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.Action.UPDATE_LISTED, serverPlayer);
-
-		for (Player onlinePlayer : plugin.getServer().getOnlinePlayers()) {
-			if (onlinePlayer.equals(player)) {
-				continue;
-			}
-
-			((CraftPlayer) onlinePlayer).getHandle().connection.send(addPlayer);
-			((CraftPlayer) onlinePlayer).getHandle().connection.send(updateDisplayName);
-			((CraftPlayer) onlinePlayer).getHandle().connection.send(updateTablist);
-
-			if (plugin.isDebug()) {
-				plugin.getServer().broadcastMessage("Packet sent to keep player on tablist from: " + player.getName());
-			}
 		}
 	}
 

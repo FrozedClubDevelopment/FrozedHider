@@ -1,0 +1,2 @@
+# Enable debug mode for additional logging
+debug: false

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>club.frozed</groupId>
+        <artifactId>hider-parent</artifactId>
+        <version>1.2.0</version>
+    </parent>
+
+    <artifactId>v1_21_R2</artifactId>
+    <name>hider-v1_21_R2</name>
+    <packaging>jar</packaging>
+
+    <dependencies>
+        <!-- Common module -->
+        <dependency>
+            <groupId>club.frozed</groupId>
+            <artifactId>hider-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Spigot NMS -->
+        <dependency>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot</artifactId>
+            <version>1.21.3-R0.1-SNAPSHOT</version>
+            <classifier>remapped-mojang</classifier>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>
