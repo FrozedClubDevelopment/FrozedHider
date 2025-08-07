@@ -17,6 +17,7 @@
         <module>v1_21_R1</module>
         <module>v1_21_R2</module>
         <module>v1_21_R3</module>
+        <module>distribution</module>
     </modules>
 
     <organization>

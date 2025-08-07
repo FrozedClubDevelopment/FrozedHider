@@ -1,0 +1,57 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>me.elb1to</groupId>
+    <artifactId>distribution</artifactId>
+    <version>${project.parent.version}</version>
+    <packaging>jar</packaging>
+
+    <parent>
+        <groupId>club.frozed</groupId>
+        <artifactId>hider-parent</artifactId>
+        <version>1.2.0</version>
+    </parent>
+
+    <build>
+        <directory>../target</directory>
+        <finalName>frozedhider-${project.version}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.6.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+    <dependencies>
+        <dependency>
+            <groupId>club.frozed</groupId>
+            <artifactId>hider-core</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>club.frozed</groupId>
+            <artifactId>v1_21_R1</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>club.frozed</groupId>
+            <artifactId>v1_21_R2</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>club.frozed</groupId>
+            <artifactId>v1_21_R3</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+    </dependencies>
+</project>
