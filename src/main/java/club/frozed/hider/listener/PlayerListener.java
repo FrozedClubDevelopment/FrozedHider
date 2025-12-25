@@ -1,0 +1,98 @@
+package club.frozed.hider.listener;
+
+import club.frozed.hider.FrozedHider;
+import club.frozed.hider.event.PlayerRegionEntryEvent;
+import club.frozed.hider.event.PlayerRegionExitEvent;
+import com.sk89q.worldguard.protection.flags.StateFlag;
+import com.sk89q.worldguard.protection.regions.ProtectedRegion;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerKickEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+
+/**
+ * @author Elb1to
+ * @since 7/14/2025
+ */
+public record PlayerListener(FrozedHider plugin) implements Listener {
+
+	@EventHandler
+	public void onPlayerJoin(PlayerJoinEvent event) {
+		Player player = event.getPlayer();
+		if (!player.isOnline()) {
+			return;
+		}
+
+		StateFlag flag = plugin.getWorldGuardHook().getHidePlayerFlag();
+		for (ProtectedRegion region : plugin.getWorldGuardHook().getRegions(player.getUniqueId())) {
+			if (region.getFlag(flag) == StateFlag.State.ALLOW) {
+				plugin.getPlayerVisibilityManager().hidePlayer(player, region.getId());
+				break;
+			}
+		}
+	}
+
+	@EventHandler
+	public void onPlayerQuit(PlayerQuitEvent event) {
+		Player player = event.getPlayer();
+		if (!player.isOnline()) {
+			return;
+		}
+
+		plugin.getINetMinecraftServer().removeFromTablist(player);
+	}
+
+	@EventHandler
+	public void onPlayerKick(PlayerKickEvent event) {
+		Player player = event.getPlayer();
+		if (!player.isOnline()) {
+			return;
+		}
+
+		plugin.getINetMinecraftServer().removeFromTablist(player);
+	}
+
+	@EventHandler
+	public void onRegionEntry(PlayerRegionEntryEvent event) {
+		Player player = event.getPlayer();
+		if (player == null || !player.isOnline()) {
+			return;
+		}
+
+		ProtectedRegion region = event.getRegion();
+		if (region.getFlag(plugin.getWorldGuardHook().getHidePlayerFlag()) == StateFlag.State.ALLOW) {
+			plugin.getPlayerVisibilityManager().hidePlayer(player, region.getId());
+		}
+	}
+
+	@EventHandler
+	public void onRegionExit(PlayerRegionExitEvent event) {
+		Player player = event.getPlayer();
+		if (player == null || !player.isOnline()) {
+			if (plugin.isDebug()) {
+				plugin.getServer().broadcastMessage("Player is null or not online on region exit for region '" + event.getRegion().getId() + "'.");
+			}
+			return;
+		}
+
+		// If the player has 'frozedhider.stay-hidden' permission,
+		// don't make them visible when they exit the region
+		if (player.hasPermission("frozedhider.stay-hidden")) {
+			if (plugin.isDebug()) {
+				plugin.getServer().broadcastMessage("Player '" + player.getName() + "' has stay-hidden permission, remaining hidden after leaving region '" + event.getRegion().getId() + "'.");
+			}
+			return;
+		}
+
+		StateFlag flag = plugin.getWorldGuardHook().getHidePlayerFlag();
+		boolean inHideRegion = plugin.getWorldGuardHook().getRegions(player.getUniqueId()).stream().anyMatch(r -> r.getFlag(flag) == StateFlag.State.ALLOW);
+		if (inHideRegion) {
+			plugin.getPlayerVisibilityManager().showPlayer(player, event.getRegion().getId());
+			if (plugin.isDebug()) {
+				plugin.getServer().broadcastMessage("Showing player '" + player.getName() + "' after leaving region '" + event.getRegion().getId() + "'.");
+			}
+		}
+	}
+}
